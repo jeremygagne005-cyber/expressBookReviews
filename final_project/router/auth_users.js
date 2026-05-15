@@ -4,19 +4,28 @@ let books = require("./booksdb.js");
 const regd_users = express.Router();
 
 let users = [];
+const SECRET_KEY = 'fingerprint_customer'
 
 const isValid = (username)=>{ //returns boolean
-//write code to check is the username is valid
+  return users.some((users) => users.username === username)
 }
 
 const authenticatedUser = (username,password)=>{ //returns boolean
-//write code to check if username and password match the one we have in records.
+  const user = users.find((users) => users.username === username)
+  return user && user.password === password
 }
 
 //only registered users can login
 regd_users.post("/login", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const { username, password } = req.body
+
+  if (!isValid(username) || !authenticatedUser(username, password)) {
+    return res.status(401).json({ message: 'Invalid username or password' })
+  }
+
+  const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' })
+  users.find((u) => u.username === username).token = token
+  return res.status(200).json({ token })
 });
 
 // Add a book review
